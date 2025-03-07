@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票AI預測</title>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.11.1/dist/plotly.min.js"></script>  <!-- 使用 Plotly.js -->
+    <style>
+        #chart {
+            width: 100%;
+            height: 600px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">股票AI預測</h1>
+    <div id="chart"></div>
+
+    <script>
+        // 假設 stockData, buyPoints, sellPoints, predictedBuyPoints, predictedSellPoints 來自 Flask 端傳過來的 JSON 數據
+        const stockData = {{ stock_data|tojson }};
+        const buyPoints = {{ buy_points|tojson }};
+        const sellPoints = {{ sell_points|tojson }};
+        const predictedBuyPoints = {{ predicted_buy_points|tojson }};
+        const predictedSellPoints = {{ predicted_sell_points|tojson }};
+
+        // 轉換為 Plotly 所需格式
+        const dates = stockData.map(item => item.Date);
+        const opens = stockData.map(item => item.Open);
+        const highs = stockData.map(item => item.High);
+        const lows = stockData.map(item => item.Low);
+        const closes = stockData.map(item => item.Close);
+
+        // 蠟燭圖 (K線圖)
+        const trace = {
+            x: dates,
+            close: closes,
+            high: highs,
+            low: lows,
+            open: opens,
+            type: 'candlestick',
+            name: '蠟燭圖',
+        };
+
+        // 計算買入點 trace
+        const buyTrace = {
+            x: buyPoints.map(item => item.Date),
+            y: buyPoints.map(item => item.Close),
+            mode: 'markers',
+            type: 'scatter',
+            name: '計算買入點',
+            marker: { color: 'green', size: 10, symbol: 'triangle-up' }
+        };
+
+        // 計算賣出點 trace
+        const sellTrace = {
+            x: sellPoints.map(item => item.Date),
+            y: sellPoints.map(item => item.Close),
+            mode: 'markers',
+            type: 'scatter',
+            name: '計算賣出點',
+            marker: { color: 'red', size: 10, symbol: 'triangle-down' }
+        };
+
+        // 預測買入點 trace
+        const predictedBuyTrace = {
+            x: predictedBuyPoints.map(item => item.Date),
+            y: predictedBuyPoints.map(item => item.Close),
+            mode: 'markers',
+            type: 'scatter',
+            name: '預測買入點',
+            marker: { color: 'blue', size: 10, symbol: 'circle' }
+        };
+
+        // 預測賣出點 trace
+        const predictedSellTrace = {
+            x: predictedSellPoints.map(item => item.Date),
+            y: predictedSellPoints.map(item => item.Close),
+            mode: 'markers',
+            type: 'scatter',
+            name: '預測賣出點',
+            marker: { color: 'orange', size: 10, symbol: 'circle' }
+        };
+
+        // 收盤價折線圖
+        const closeTrace = {
+            x: dates,
+            y: closes,
+            mode: 'lines',
+            type: 'scatter',
+            name: '收盤價',
+            line: { color: 'purple', width: 2 }
+        };
+
+        // 開盤價折線圖
+        const openTrace = {
+            x: dates,
+            y: opens,
+            mode: 'lines',
+            type: 'scatter',
+            name: '開盤價',
+            line: { color: 'brown', width: 2 }
+        };
+
+        // 將所有追蹤點放入數據陣列
+        const data = [trace, buyTrace, sellTrace, predictedBuyTrace, predictedSellTrace, closeTrace, openTrace];
+
+        // 設定圖表的佈局
+        const layout = {
+            title: '股票蠟燭圖與買賣點預測',
+            xaxis: {
+                title: '日期',
+                rangeslider: { visible: false }  // 隱藏範圍滑塊
+            },
+            yaxis: {
+                title: '價格'
+            }
+        };
+
+        // 使用 Plotly 渲染圖表
+        Plotly.newPlot('chart', data, layout);
+    </script>
+</body>
+</html>
