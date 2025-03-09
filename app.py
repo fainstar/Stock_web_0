@@ -7,7 +7,7 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     # 假設CSV文件已經存在於相同目錄下
-    CSV_FILE = "B_Data/TP_3711.csv"  # 請修改為正確的檔案路徑
+    CSV_FILE = "B_Data/XGB_3711.csv"  # 請修改為正確的檔案路徑
     df = pd.read_csv(CSV_FILE)  # 載入 CSV
 
     # 提取所需的資料，並轉換為字典格式

@@ -4,122 +4,147 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>股票AI預測</title>
-    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.11.1/dist/plotly.min.js"></script>  <!-- 使用 Plotly.js -->
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.11.1/dist/plotly.min.js"></script>
     <style>
         #chart {
             width: 100%;
             height: 600px;
             margin: 0 auto;
         }
+        .controls {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .control-group {
+            display: inline-block;
+            margin: 0 20px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
     <h1 style="text-align:center;">股票AI預測</h1>
+
+    <div class="controls">
+        <!-- 計算買入點 -->
+        <div class="control-group">
+            <h3>計算買入點</h3>
+            <label>大小：</label>
+            <input type="range" id="buySize" min="5" max="20" value="10">
+            <label>形狀：</label>
+            <select id="buyShape">
+                <option value="circle">圓形</option>
+                <option value="triangle-up">上三角</option>
+                <option value="diamond">菱形</option>
+                <option value="square">方形</option>
+            </select>
+        </div>
+
+        <!-- 計算賣出點 -->
+        <div class="control-group">
+            <h3>計算賣出點</h3>
+            <label>大小：</label>
+            <input type="range" id="sellSize" min="5" max="20" value="10">
+            <label>形狀：</label>
+            <select id="sellShape">
+                <option value="circle">圓形</option>
+                <option value="triangle-down">下三角</option>
+                <option value="diamond">菱形</option>
+                <option value="square">方形</option>
+            </select>
+        </div>
+
+        <!-- 預測買入點 -->
+        <div class="control-group">
+            <h3>預測買入點</h3>
+            <label>大小：</label>
+            <input type="range" id="predBuySize" min="5" max="20" value="10">
+            <label>形狀：</label>
+            <select id="predBuyShape">
+                <option value="circle">圓形</option>
+                <option value="triangle-up">上三角</option>
+                <option value="diamond">菱形</option>
+                <option value="square">方形</option>
+            </select>
+        </div>
+
+        <!-- 預測賣出點 -->
+        <div class="control-group">
+            <h3>預測賣出點</h3>
+            <label>大小：</label>
+            <input type="range" id="predSellSize" min="5" max="20" value="10">
+            <label>形狀：</label>
+            <select id="predSellShape">
+                <option value="circle">圓形</option>
+                <option value="triangle-down">下三角</option>
+                <option value="diamond">菱形</option>
+                <option value="square">方形</option>
+            </select>
+        </div>
+    </div>
+
     <div id="chart"></div>
 
     <script>
-        // 假設 stockData, buyPoints, sellPoints, predictedBuyPoints, predictedSellPoints 來自 Flask 端傳過來的 JSON 數據
         const stockData = {{ stock_data|tojson }};
         const buyPoints = {{ buy_points|tojson }};
         const sellPoints = {{ sell_points|tojson }};
         const predictedBuyPoints = {{ predicted_buy_points|tojson }};
         const predictedSellPoints = {{ predicted_sell_points|tojson }};
 
-        // 轉換為 Plotly 所需格式
         const dates = stockData.map(item => item.Date);
         const opens = stockData.map(item => item.Open);
         const highs = stockData.map(item => item.High);
         const lows = stockData.map(item => item.Low);
         const closes = stockData.map(item => item.Close);
 
-        // 蠟燭圖 (K線圖)
-        const trace = {
-            x: dates,
-            close: closes,
-            high: highs,
-            low: lows,
-            open: opens,
-            type: 'candlestick',
-            name: '蠟燭圖',
-        };
+        let buySize = 10, sellSize = 10, predBuySize = 10, predSellSize = 10;
+        let buyShape = "circle", sellShape = "triangle-down", predBuyShape = "circle", predSellShape = "triangle-down";
 
-        // 計算買入點 trace
-        const buyTrace = {
-            x: buyPoints.map(item => item.Date),
-            y: buyPoints.map(item => item.Close),
-            mode: 'markers',
-            type: 'scatter',
-            name: '計算買入點',
-            marker: { color: 'green', size: 10, symbol: 'triangle-up' }
-        };
+        function getTraces() {
+            return [
+                { x: dates, close: closes, high: highs, low: lows, open: opens, type: 'candlestick', name: '蠟燭圖' },
+                { x: buyPoints.map(item => item.Date), y: buyPoints.map(item => item.Close), mode: 'markers', type: 'scatter', name: '計算買入點', marker: { color: 'green', size: buySize, symbol: buyShape } },
+                { x: sellPoints.map(item => item.Date), y: sellPoints.map(item => item.Close), mode: 'markers', type: 'scatter', name: '計算賣出點', marker: { color: 'red', size: sellSize, symbol: sellShape } },
+                { x: predictedBuyPoints.map(item => item.Date), y: predictedBuyPoints.map(item => item.Close), mode: 'markers', type: 'scatter', name: '預測買入點', marker: { color: 'blue', size: predBuySize, symbol: predBuyShape } },
+                { x: predictedSellPoints.map(item => item.Date), y: predictedSellPoints.map(item => item.Close), mode: 'markers', type: 'scatter', name: '預測賣出點', marker: { color: 'orange', size: predSellSize, symbol: predSellShape } },
+                { x: dates, y: closes, mode: 'lines', type: 'scatter', name: '收盤價', line: { color: 'purple', width: 2 } }
+            ];
+        }
 
-        // 計算賣出點 trace
-        const sellTrace = {
-            x: sellPoints.map(item => item.Date),
-            y: sellPoints.map(item => item.Close),
-            mode: 'markers',
-            type: 'scatter',
-            name: '計算賣出點',
-            marker: { color: 'red', size: 10, symbol: 'triangle-down' }
-        };
+        Plotly.newPlot('chart', getTraces(), { title: '股票蠟燭圖與買賣點預測', xaxis: { title: '日期', rangeslider: { visible: false } }, yaxis: { title: '價格' } });
 
-        // 預測買入點 trace
-        const predictedBuyTrace = {
-            x: predictedBuyPoints.map(item => item.Date),
-            y: predictedBuyPoints.map(item => item.Close),
-            mode: 'markers',
-            type: 'scatter',
-            name: '預測買入點',
-            marker: { color: 'blue', size: 10, symbol: 'circle' }
-        };
+        function updateMarker(traceIndex, size, shape) {
+            Plotly.restyle('chart', { 'marker.size': size, 'marker.symbol': shape }, [traceIndex]);
+        }
 
-        // 預測賣出點 trace
-        const predictedSellTrace = {
-            x: predictedSellPoints.map(item => item.Date),
-            y: predictedSellPoints.map(item => item.Close),
-            mode: 'markers',
-            type: 'scatter',
-            name: '預測賣出點',
-            marker: { color: 'orange', size: 10, symbol: 'circle' }
-        };
+        document.getElementById('buySize').addEventListener('input', function() {
+            buySize = this.value; updateMarker(1, buySize, buyShape);
+        });
+        document.getElementById('buyShape').addEventListener('change', function() {
+            buyShape = this.value; updateMarker(1, buySize, buyShape);
+        });
 
-        // 收盤價折線圖
-        const closeTrace = {
-            x: dates,
-            y: closes,
-            mode: 'lines',
-            type: 'scatter',
-            name: '收盤價',
-            line: { color: 'purple', width: 2 }
-        };
+        document.getElementById('sellSize').addEventListener('input', function() {
+            sellSize = this.value; updateMarker(2, sellSize, sellShape);
+        });
+        document.getElementById('sellShape').addEventListener('change', function() {
+            sellShape = this.value; updateMarker(2, sellSize, sellShape);
+        });
 
-        // 開盤價折線圖
-        const openTrace = {
-            x: dates,
-            y: opens,
-            mode: 'lines',
-            type: 'scatter',
-            name: '開盤價',
-            line: { color: 'brown', width: 2 }
-        };
+        document.getElementById('predBuySize').addEventListener('input', function() {
+            predBuySize = this.value; updateMarker(3, predBuySize, predBuyShape);
+        });
+        document.getElementById('predBuyShape').addEventListener('change', function() {
+            predBuyShape = this.value; updateMarker(3, predBuySize, predBuyShape);
+        });
 
-        // 將所有追蹤點放入數據陣列
-        const data = [trace, buyTrace, sellTrace, predictedBuyTrace, predictedSellTrace, closeTrace, openTrace];
-
-        // 設定圖表的佈局
-        const layout = {
-            title: '股票蠟燭圖與買賣點預測',
-            xaxis: {
-                title: '日期',
-                rangeslider: { visible: false }  // 隱藏範圍滑塊
-            },
-            yaxis: {
-                title: '價格'
-            }
-        };
-
-        // 使用 Plotly 渲染圖表
-        Plotly.newPlot('chart', data, layout);
+        document.getElementById('predSellSize').addEventListener('input', function() {
+            predSellSize = this.value; updateMarker(4, predSellSize, predSellShape);
+        });
+        document.getElementById('predSellShape').addEventListener('change', function() {
+            predSellShape = this.value; updateMarker(4, predSellSize, predSellShape);
+        });
     </script>
 </body>
 </html>
