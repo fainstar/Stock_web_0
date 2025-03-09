@@ -23,7 +23,7 @@
     </style>
 </head>
 <body>
-    <h1 style="text-align:center;">股票AI預測</h1>
+    <h1 style="text-align:center;">股票-機器學習(3711)</h1>
 
     <div class="controls">
         <!-- 計算買入點 -->
@@ -112,7 +112,7 @@
             ];
         }
 
-        Plotly.newPlot('chart', getTraces(), { title: '股票蠟燭圖與買賣點預測', xaxis: { title: '日期', rangeslider: { visible: false } }, yaxis: { title: '價格' } });
+        Plotly.newPlot('chart', getTraces(), { title: '', xaxis: { title: '日期', rangeslider: { visible: false } }, yaxis: { title: '價格' } });
 
         function updateMarker(traceIndex, size, shape) {
             Plotly.restyle('chart', { 'marker.size': size, 'marker.symbol': shape }, [traceIndex]);

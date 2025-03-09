@@ -24,7 +24,6 @@ def index():
     sell_points = df[df['target'] == -1][['Date', 'Close']].to_dict(orient='records')
 
     # 假設 CSV 中有 'predict' 列，並提取預測的買入賣出點
-    # 如果 CSV 中沒有 predict 列，請確保正確處理此部分
     predicted_buy_points = df[df['predict'] == 2][['Date', 'Close']].to_dict(orient='records')
     predicted_sell_points = df[df['predict'] == 0][['Date', 'Close']].to_dict(orient='records')
 
